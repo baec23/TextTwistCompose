@@ -11,7 +11,7 @@ class WordRepositoryImpl @Inject constructor(
     private val api: WordApi
 ) : WordRepository {
 
-    suspend fun getRandomWord(wordLength: Int): Resource<Word> {
+    override suspend fun getRandomWord(wordLength: Int): Resource<Word> {
         val response =
             try {
                 api.getRandomWord(wordLength)
