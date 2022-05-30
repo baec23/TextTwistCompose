@@ -23,23 +23,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        lifecycleScope.launchWhenCreated {
-            val a = RetrofitInstance.api.getRandomWord(6)
-            val response = try {
-                RetrofitInstance.api.getRandomWord(6)
-            } catch (e: IOException) {
-                Log.d(TAG, "onCreate: IO EXCEPTION")
-                return@launchWhenCreated
-            } catch (e: HttpException) {
-                Log.d(TAG, "onCreate: HTTP EXCEPTION")
-                return@launchWhenCreated
-            }
-            if (response.isSuccessful && response.body() != null) {
-                Log.d(TAG, "RESPONSE RECEIVED ${response.body()}")
-                val sol = RetrofitInstance.api.getSolutions(response.body()!!.alphaLetters)
-                Log.d(TAG, "Solutions: ${sol.body()}")
-            }
-        }
         setContent {
             TextTwistComposeTheme {
                 val navController = rememberNavController()
