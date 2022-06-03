@@ -1,53 +1,137 @@
-package com.baec.texttwistcompose.ui
+package com.baec.texttwistcompose.ui.gamescreen
 
-import GameScreenViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import com.baec.texttwistcompose.ui.gamescreen.GameScreenState
-import com.baec.texttwistcompose.ui.gamescreen.solution.SolutionBox
+import com.baec.texttwistcompose.ui.gamescreen.solution.SolutionList
+import com.baec.texttwistcompose.ui.gamescreen.timer.Timer
 import com.baec.texttwistcompose.ui.theme.DarkBlue
 import com.baec.texttwistcompose.ui.theme.LightGrey
 
 @Composable
 fun GameScreen(
-    navController: NavController,
     gameScreenViewModel: GameScreenViewModel,
 ) {
+    val scrollState = rememberScrollState()
+    val gameState = gameScreenViewModel.gameState
     Box() {
         Column(
             modifier = Modifier
+                .verticalScroll(scrollState)
                 .fillMaxWidth()
                 .align(Alignment.Center),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Row() {
-                SolutionBox(word = "TEST", isGuessed = true, modifier = Modifier)
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(25.dp)
+            ) {
+                ScoreBox(score = gameScreenViewModel.score, modifier = Modifier)
+                Timer(
+                    timerState = gameScreenViewModel.timerState,
+                    inactiveBarColor = LightGrey,
+                    activeBarColor = DarkBlue,
+                    modifier = Modifier.size(100.dp),
+                    isTimerRunning = gameState.isInProgress,
+                    onTimerFinished = gameScreenViewModel::onTimerFinished
+                )
             }
+
             Row() {
                 GuessedLetters(
-                    gameScreenViewModel.gameState,
+                    gameState.guessedLetters,
                     modifier = Modifier,
                     onClick = gameScreenViewModel::clickGuessedLetter
                 )
             }
             Row() {
                 AvailableLetters(
-                    gameScreenViewModel.gameState,
+                    gameState.availableLetters,
                     modifier = Modifier,
                     onClick = gameScreenViewModel::clickAvailableLetter
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(
+                    onClick = gameScreenViewModel::clickSubmit,
+                    enabled = gameState.isInProgress,
+                    elevation = ButtonDefaults.elevation(
+                        defaultElevation = 5.dp,
+                        disabledElevation = 0.dp,
+                        pressedElevation = 2.dp,
+                    )
+                ) {
+                    Text(text = "Enter")
+                }
+                Button(
+                    onClick = gameScreenViewModel::clickClear,
+                    enabled = gameState.isInProgress,
+                    elevation = ButtonDefaults.elevation(
+                        defaultElevation = 5.dp,
+                        disabledElevation = 0.dp,
+                        pressedElevation = 2.dp,
+                    )
+                ) {
+                    Text(text = "Clear")
+                }
+                Button(
+                    onClick = gameScreenViewModel::clickTwist,
+                    enabled = gameState.isInProgress,
+                    elevation = ButtonDefaults.elevation(
+                        defaultElevation = 5.dp,
+                        disabledElevation = 0.dp,
+                        pressedElevation = 2.dp,
+                    )
+                ) {
+                    Text(text = "Twist")
+                }
+                Button(
+                    onClick = gameScreenViewModel::clickShowAnswers,
+                    enabled = gameState.isInProgress,
+                    elevation = ButtonDefaults.elevation(
+                        defaultElevation = 5.dp,
+                        disabledElevation = 0.dp,
+                        pressedElevation = 2.dp,
+                    )
+                ) {
+                    Text(text = "Show Answers")
+                }
+                Button(
+                    onClick = gameScreenViewModel::clickNewGame,
+                    enabled = gameState.isSixLetterGuessed || !gameState.isInProgress,
+                    elevation = ButtonDefaults.elevation(
+                        defaultElevation = 5.dp,
+                        disabledElevation = 0.dp,
+                        pressedElevation = 2.dp,
+                    )
+                ) {
+                    Text(text = "New Game")
+                }
+            }
+            Row() {
+                SolutionList(
+                    solutionStateList = gameState.solutions,
+                    modifier = Modifier
                 )
             }
         }
@@ -55,8 +139,33 @@ fun GameScreen(
 }
 
 @Composable
+fun ScoreBox(
+    score: Int,
+    modifier: Modifier
+) {
+    Box(
+        modifier = Modifier
+            .background(Color.White)
+            .wrapContentSize()
+            .then(modifier)
+    )
+    {
+        Row(
+            modifier = Modifier
+                .wrapContentSize(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = "Score: $score",
+                fontSize = 24.sp
+            )
+        }
+    }
+}
+
+@Composable
 fun GuessedLetters(
-    gameState: GameScreenState,
+    guessedLetters: List<Char>,
     modifier: Modifier,
     onClick: (Int) -> Unit,
 ) {
@@ -64,17 +173,19 @@ fun GuessedLetters(
         modifier = Modifier
             .background(Color.White)
             .fillMaxWidth()
+            .height(100.dp)
             .then(modifier)
     )
     {
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+                .fillMaxWidth()
+                .wrapContentSize(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            for (i in gameState.guessedLetters.indices) {
+            for (i in guessedLetters.indices) {
                 GameLetter(
-                    letter = gameState.guessedLetters[i],
+                    letter = guessedLetters[i],
                     modifier = modifier,
                     index = i,
                     onClick = onClick
@@ -86,7 +197,7 @@ fun GuessedLetters(
 
 @Composable
 fun AvailableLetters(
-    gameState: GameScreenState,
+    availableLetters: List<Char>,
     modifier: Modifier,
     onClick: (Int) -> Unit,
 ) {
@@ -94,17 +205,19 @@ fun AvailableLetters(
         modifier = Modifier
             .background(Color.DarkGray)
             .fillMaxWidth()
+            .height(100.dp)
             .then(modifier)
     )
     {
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .fillMaxWidth()
+                .wrapContentSize(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            for (i in gameState.availableLetters.indices) {
+            for (i in availableLetters.indices) {
                 GameLetter(
-                    letter = gameState.availableLetters[i],
+                    letter = availableLetters[i],
                     modifier = modifier,
                     index = i,
                     onClick = onClick
@@ -120,13 +233,13 @@ fun GameLetter(
     modifier: Modifier,
     index: Int,
     onClick: (Int) -> Unit,
-    size: Dp = 50.dp,
-    fontSize: TextUnit = 24.sp,
+    fontSize: TextUnit = 48.sp,
 ) {
+    @Suppress("NAME_SHADOWING") val letter = letter.uppercaseChar()
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(size)
+            .size(100.dp)
             .clip(CircleShape)
             .background(color = LightGrey)
             .clickable { onClick(index) }

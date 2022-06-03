@@ -1,6 +1,7 @@
 package com.baec.texttwistcompose.di
 
 import com.baec.texttwistcompose.data.remote.WordApi
+import com.baec.texttwistcompose.repository.WordRepository
 import com.baec.texttwistcompose.repository.WordRepositoryImpl
 import com.baec.texttwistcompose.util.Constants
 import dagger.Module
@@ -19,7 +20,9 @@ object AppModule {
     @Provides
     fun provideWordRepository(
         api: WordApi
-    ) = WordRepositoryImpl(api)
+    ): WordRepository {
+        return WordRepositoryImpl(api)
+    }
 
     @Singleton
     @Provides

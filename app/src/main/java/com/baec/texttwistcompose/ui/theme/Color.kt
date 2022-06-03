@@ -8,4 +8,5 @@ val Purple700 = Color(0xFF3700B3)
 val Teal200 = Color(0xFF03DAC5)
 
 val LightGrey = Color(0xFFBBBBBB)
+val LightRed = Color(0xFFF89C96)
 val DarkBlue = Color(0xFF002461)
